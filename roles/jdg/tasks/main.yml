@@ -1,0 +1,52 @@
+---
+- name: Install sdkman
+  shell: curl -s "https://get.sdkman.io" | bash
+
+- name: Install JVM
+  shell: |
+    source ~/.bashrc
+    yes y | sdk install java {{ java_version }}
+
+- name: Create server dir
+  file:
+    path: /opt/jdg/
+    state: directory
+
+- name: Copy server
+  copy:
+    src: files/server/{{ server_zip }}
+    dest: /opt/jdg/server.zip
+
+- name: Extract Server
+  unarchive:
+    src: /opt/jdg/server.zip
+    dest: /opt/jdg
+    remote_src: true
+
+- name: Create agent dir
+  file:
+    path: /opt/agent/
+    state: directory
+
+- name: Copy agent
+  copy:
+    src: files/agent/{{ agent_zip }}
+    dest: /opt/agent/agent.zip
+
+- name: Extract agent
+  unarchive:
+    src: /opt/agent/agent.zip
+    dest: /opt/agent
+    remote_src: true
+
+- name: Add Agent ops
+  shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ agent_opts }}\""  /opt/jdg/*/bin/standalone.conf
+
+- name: Add GC opts
+  shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ gc_opts }}\""  /opt/jdg/*/bin/standalone.conf
+
+- name: Add JFR opts
+  shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ fr_opts }}\""  /opt/jdg/*/bin/standalone.conf
+
+- name: start server
+  shell: cd /opt/jdg/jboss-*/ && nohup bin/standalone.sh -c clustered.xml -b $(hostname -i) &

@@ -1,0 +1,20 @@
+# Java version must be a string supported from SDKMan
+java_version: 8.0.275.open-adpt
+
+# The server zip, relative to the files/server folder
+server_zip: jboss-datagrid-7.1.0-server.zip
+
+# The zip containing the appdynamics agent, relative to the files/agent folder
+agent_zip: AppServerAgent-20.10.0.31173.zip
+
+# GC options for the server
+gc_opts: -Xms8g -Xmx8g -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=0 -XX:+DisableExplicitGC -XX:MaxGCPauseMillis=200 -XX:GCPauseIntervalMillis=5000
+
+# Agent options for the server
+agent_opts: -Djboss.modules.system.pkgs=org.jboss.byteman,com.singularity -javaagent:/opt/agent/javaagent.jar
+
+# JFR options for the server
+fr_opts: -XX:FlightRecorderOptions=stackdepth=128 -XX:StartFlightRecording=settings=profile,dumponexit=true,filename=server.jfr
+
+# AWS specific variables
+# TODO
