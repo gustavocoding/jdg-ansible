@@ -11,7 +11,7 @@
 
 ### Configuration
 
-Change the file ```group_vars``` for the java version, server and agent zip and JVM properties as needed. 
+Change the file ```group_vars/all``` for the java version, server and agent zip and JVM properties as needed. 
 
 ### Run locally on docker
 
@@ -19,7 +19,7 @@ Create some local docker containers using the script
 
     docker/create-cluster.sh -s 3
     
-The script will output the ips of the container, grab and put them in the ```hosts``` file and run:
+The script will output the ips of the containers. Copy them and put them in the ```hosts``` file and run:
 
 	export ANSIBLE_HOST_KEY_CHECKING=false;ansible-playbook -u root -i hosts site.yml
 
