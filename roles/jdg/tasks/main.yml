@@ -14,7 +14,7 @@
 
 - name: Copy server
   copy:
-    src: files/server/{{ server_zip }}
+    src: files/servers/{{ server_zip }}
     dest: /opt/jdg/server.zip
 
 - name: Extract Server
@@ -30,7 +30,7 @@
 
 - name: Copy agent
   copy:
-    src: files/agent/{{ agent_zip }}
+    src: files/agents/{{ agent_zip }}
     dest: /opt/agent/agent.zip
 
 - name: Extract agent
@@ -49,4 +49,4 @@
   shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ fr_opts }}\""  /opt/jdg/*/bin/standalone.conf
 
 - name: start server
-  shell: cd /opt/jdg/jboss-*/ && nohup bin/standalone.sh -c clustered.xml -b $(hostname -i) &
+  shell: cd /opt/jdg/*server*/ && nohup bin/standalone.sh -c clustered.xml -b $(hostname -i) &
