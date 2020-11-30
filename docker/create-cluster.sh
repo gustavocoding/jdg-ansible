@@ -49,9 +49,10 @@ do
 	start-container $i
 done
 
-echo "Use this in the hosts files from ansible:"
+echo "Creating hosts file"
+echo "[jdg]" > hosts
 for c in $(docker ps -q -f name=centos)
 do
-  docker exec -it $c hostname -i
+  echo -e $(docker exec -it $c hostname -i) >> hosts
 done
 

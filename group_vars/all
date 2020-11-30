@@ -4,6 +4,9 @@ java_version: 8.0.275.open-adpt
 # The server zip, relative to the files/server folder
 server_zip: jboss-datagrid-7.1.0-server.zip
 
+# The server config to use. For custom config, copy it first to ```servers/overlay/standalone/configuration```
+custom_server_config: clustered.xml
+
 # The zip containing the appdynamics agent, relative to the files/agent folder
 agent_zip: AppServerAgent-20.10.0.31173.zip
 

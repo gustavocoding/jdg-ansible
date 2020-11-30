@@ -23,6 +23,16 @@
     dest: /opt/jdg
     remote_src: true
 
+- name: obtain server dir
+  shell: ls -d /opt/jdg/*server*/ | head -1
+  register: server_dir
+
+- name: Overlay server files
+  copy:
+    src: ./files/servers/overlay/
+    dest: "{{ server_dir.stdout }}/"
+    directory_mode: yes
+
 - name: Create agent dir
   file:
     path: /opt/agent/
@@ -39,6 +49,12 @@
     dest: /opt/agent
     remote_src: true
 
+- name: Overlay agent files
+  copy:
+    src: ./files/agents/overlay/
+    dest: /opt/agent/
+    directory_mode: yes
+
 - name: Add Agent ops
   shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ agent_opts }}\""  /opt/jdg/*/bin/standalone.conf
 
@@ -49,4 +65,4 @@
   shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ fr_opts }}\""  /opt/jdg/*/bin/standalone.conf
 
 - name: start server
-  shell: cd /opt/jdg/*server*/ && nohup bin/standalone.sh -c clustered.xml -b $(hostname -i) &
+  shell: cd /opt/jdg/*server*/ && nohup bin/standalone.sh -c {{ custom_server_config }} -b $(hostname -i) &
