@@ -3,7 +3,7 @@
 set -e
 
 function start-container() {
-  docker run --name centos$1 --privileged --tmpfs /run -v /sys/fs/cgroup:/sys/fs/cgroup:ro -td gustavonalle/centos
+  docker run --name centos$1 --privileged -td gustavonalle/centos
   CONTAINER=$(docker ps -lq)
   docker cp ~/.ssh/id_rsa.pub "$CONTAINER":/root/.ssh/authorized_keys
   docker exec "$CONTAINER" chown root:root /root/.ssh/authorized_keys
