@@ -19,5 +19,20 @@ agent_opts: -Djboss.modules.system.pkgs=org.jboss.byteman,com.singularity -javaa
 # JFR options for the server
 fr_opts: -XX:FlightRecorderOptions=stackdepth=128 -XX:StartFlightRecording=settings=profile,dumponexit=true,filename=server.jfr
 
+# Cache name
+cache_name: default
+
+# Initial data loading
+entries: 10000
+
+# Sample data phrase size
+phrase: 100
+
+# HotRod protocol
+protocol: 2.5
+
+# Load batch
+batch: 1000
+
 # AWS specific variables
 # TODO

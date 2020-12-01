@@ -3,7 +3,7 @@
 ### Requirements
 
 * Ansible
-* Linux or MacOS (using ```docker-machine```)
+* Linux or MacOS using ```docker-machine```
 * Pre-download JDG server zip to ```files/server```
 * Pre-download agent zip to ```files/agent```
 
@@ -21,6 +21,18 @@ Change the file ```group_vars/all``` to customize the cluster creation. The foll
   
 The properties ```gc_opts```, ```agent_opts``` and ```fr_opts``` will be added together to compose
 the ```JAVA_OPTS``` used to start the server, and contain respectively, the garbage collector options, the agent options, and the flight recording options.
+  
+The following properties controls the initial data loading in the cluster:
+
+* ```cache_name```: The name of the cache to load data.
+  
+* ```entries```: The number of entries to load in the cache. Keys are String (ids) and values are random phrases with words picked from the ```loader/words.txt``` file.
+
+* ```phrase```: How many words the generated phrases will contain.
+
+* ```protocol```: The HotRod protocol used to populate the cluster. 
+
+* ```batch```: The size of the ```putAll``` requests to populate the cache.
 
 ### Run locally on docker
 
@@ -40,6 +52,10 @@ The playbook will install and start all the servers.
 To execute a shell command in all nodes of the cluster, for e.g. ```pgrep -f jboss```:
 
     ansible -u root -i hosts all -a "pgrep -f jboss" 
+    
+Get the number of entries in each server:
+
+    ansible -u root -i hosts jdg -a "/opt/jdg/jboss-datagrid-7.1.0-server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered/distributed-cache=default:read-attribute(name=number-of-entries)"
 	
 ### Run on AWS
 

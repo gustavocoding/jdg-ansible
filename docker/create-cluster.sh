@@ -56,3 +56,8 @@ do
   echo -e $(docker exec -it $c hostname -i) >> hosts
 done
 
+echo "Starting loader"
+start-container loader
+echo "[loader]" >> hosts
+echo -e $(docker exec -it centosloader hostname -i) >> hosts
+

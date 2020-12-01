@@ -1,3 +1,10 @@
-- hosts: all
+- name: install jdg nodes
+  hosts: jdg
   roles:
     - jdg
+
+- name: install loader node
+  hosts: loader
+  roles:
+    - loader
+

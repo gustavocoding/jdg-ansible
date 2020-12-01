@@ -1,0 +1,29 @@
+---
+- name: Install sdkman
+  shell: curl -s "https://get.sdkman.io" | bash
+
+- name: Install JVM
+  shell: |
+    source ~/.bashrc
+    yes y | sdk install java 11.0.9.open-adpt
+
+- name: Install jbang
+  shell: |
+    source ~/.bashrc
+    yes y | sdk install jbang
+
+- name: Create loader dir
+  file:
+    path: /opt/loader/
+    state: directory
+
+- name: Copy loader files
+  copy:
+    src: ./loader/
+    dest: /opt/loader
+    directory_mode: yes
+    mode: '0755'
+
+- name: Loading data
+  shell: |
+    /opt/loader/loader.java --cache {{ cache_name }} --entries {{ entries }} --protocol {{ protocol }} --server {{ groups['jdg'][0] }} --phrase-size {{ phrase }} --write-batch {{ batch }}
