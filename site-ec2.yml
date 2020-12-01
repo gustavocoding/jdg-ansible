@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  tasks:
+    - name: Create ec2 instances
+      ec2:
+        region: eu-west-2
+        key_name: {{ ssh-key }}
+        instance_type: t2.micro
+        image: "ami-08b993f76f42c3e2f"
+        wait: yes
+        exact_count: 3
+        count_tag:
+          Name: Demo
+        instance_tags:
+          Name: Demo
+      register: ec2
+
+    - name: Add all instance public IPs to host group
+      add_host:
+        hostname: "{{ item.public_ip }}"
+        groupname: jdg
+      loop: "{{ ec2.instances }}"
+
+- name: install jdg nodes
+  hosts: jdg
+  roles:
+    - jdg

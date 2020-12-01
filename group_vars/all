@@ -35,4 +35,4 @@ protocol: 2.5
 batch: 1000
 
 # AWS specific variables
-# TODO
+ssh-key: change

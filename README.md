@@ -59,4 +59,20 @@ Get the number of entries in each server:
 	
 ### Run on AWS
 
-//TODO
+#### Requirements
+
+##### Install python libs
+
+    pip install boto3
+
+##### AWS credentials
+
+    export AWS_ACCESS_KEY_ID='xxxx'
+    export AWS_SECRET_ACCESS_KEY='xxxx'
+    
+##### Config changes
+
+  Change the file ```group_vars/all``` accordingly:
+  
+* ```ssh-key```: This is the generated in the AWS console used to connect to the instances
+   
