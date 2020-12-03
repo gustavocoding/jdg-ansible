@@ -16,6 +16,9 @@
   file:
     path: /opt/loader/
     state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  become: yes
 
 - name: Copy loader files
   copy:

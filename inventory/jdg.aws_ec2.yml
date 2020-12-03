@@ -1,0 +1,9 @@
+plugin: aws_ec2
+regions:
+  - eu-west-2
+keyed_groups:
+  - prefix: ''
+    key: tags['Role']
+    separator: ''
+filters:
+  tag:Name: datagrid

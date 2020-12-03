@@ -4,8 +4,8 @@ java_version: 8.0.275.open-adpt
 # The server zip, relative to the files/server folder
 server_zip: jboss-datagrid-7.1.0-server.zip
 
-# The server config to use. For custom config, copy it first to ```servers/overlay/standalone/configuration```
-custom_server_config: clustered.xml
+# The server xml config to use. For custom config, copy it first to ```servers/overlay/standalone/configuration```. Defaults to "clustered.xml" or "cloud.xml"
+# custom_server_config:
 
 # The zip containing the appdynamics agent, relative to the files/agent folder
 agent_zip: AppServerAgent-20.10.0.31173.zip
@@ -34,5 +34,21 @@ protocol: 2.5
 # Load batch
 batch: 1000
 
-# AWS specific variables
-ssh-key: change
+##### AWS specific variables
+# The key-pair name
+ssh_key: change
+
+# Region
+region: eu-west-2
+
+# Security group id
+security_group: "sg-0a55ec7795af7a6a5"
+
+# Instance type
+instance_type: t2.micro
+
+# Image Id
+image: "ami-08b993f76f42c3e2f"
+
+# Subnet Id
+subnet: "subnet-6f66d223"

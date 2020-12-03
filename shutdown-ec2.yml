@@ -1,0 +1,17 @@
+- name: Stop provisioned resources
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars_files:
+    - group_vars/all
+  tasks:
+    - ec2_instance_info:
+        filters:
+          "tag:Name": datagrid
+      register: ec2_info
+    - name: Terminate instances
+      ec2:
+        instance_ids: "{{item.instance_id}}"
+        state: absent
+        region: {{ region }}
+      with_items: "{{ec2_info.instances}}"

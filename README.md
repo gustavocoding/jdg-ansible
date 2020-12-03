@@ -1,9 +1,13 @@
 ## JBoss Data Grid Deployment playbook
 
+### Description
+
+This playbook installs a JDG cluster, app dynamic agent and populates it with sample data. 
+
 ### Requirements
 
 * Ansible
-* Linux or MacOS using ```docker-machine```
+* Linux (or MacOS when using ```docker-machine```)
 * Pre-download JDG server zip to ```files/server```
 * Pre-download agent zip to ```files/agent```
 
@@ -15,7 +19,7 @@ Change the file ```group_vars/all``` to customize the cluster creation. The foll
 
 * ```server_zip```: The server zip to use, should be pre-copied to ```files/servers```
 
-* ```custom_server_config```: An optional server config to use. The default is to use ```clustered.xml``` from the servers zip. To use custom config, place the file under ```servers/overlay``` in the same directory structure as the server.
+* ```custom_server_config```: An optional server config to use. The default is to use ```clustered.xml``` from the servers zip or ```cloud.xml``` for EC2. To use custom config, uncomment this property and make sure the file is under ```servers/overlay```, in the same directory structure as the server.
 
 * ```agent_zip```: The agent zip to use, should be pre-copied to ```files/agents```
   
@@ -57,22 +61,49 @@ Get the number of entries in each server:
 
     ansible -u root -i hosts jdg -a "/opt/jdg/jboss-datagrid-7.1.0-server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered/distributed-cache=default:read-attribute(name=number-of-entries)"
 	
+Get the number of members in the cluster:
+
+     ansible -u root -i hosts jdg -a "/opt/jdg/jboss-datagrid-7.1.0-server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered:read-attribute(name=members)"	
+	
 ### Run on AWS
 
-#### Requirements
+#### Preparation
 
 ##### Install python libs
 
-    pip install boto3
+    pip install boto
 
-##### AWS credentials
+##### Export AWS credentials
 
     export AWS_ACCESS_KEY_ID='xxxx'
     export AWS_SECRET_ACCESS_KEY='xxxx'
-    
-##### Config changes
 
-  Change the file ```group_vars/all``` accordingly:
-  
-* ```ssh-key```: This is the generated in the AWS console used to connect to the instances
+##### Add SSH Keys
+
+After generating a key pair in the EC2 console, add it as an identity:
+
+    ssh-add ~/.ssh/keys.pem 
+
+### Change config
+
+Check the file ```group_vars/all``` for AWS related property. Minimally the property ```ssh-key``` should be change to 
+the name of the key created above. The remaining properties are specific to each AWS environment. This will be automated
+in the future.
+
+#### Provisioning
+
+    ansible-playbook --user ec2-user site-ec2.yml
+    
+#### Terminating resources
+
+    ansible-playbook --user ec2-user shutdown-ec2.yml
    
+#### Executing command in JDG instances:
+
+Local entries per node in the ```default``` cache: 
+
+    ansible -u ec2-user  jdg -a "/opt/jdg/jboss-datagrid-7.1.0-server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered/distributed-cache=default:read-attribute(name=number-of-entries)"
+    
+Cluster view per node:
+
+    ansible -u ec2-user  jdg -a "/opt/jdg/jboss-datagrid-7.1.0-server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered:read-attribute(name=members)"    

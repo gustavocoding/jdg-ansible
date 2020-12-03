@@ -1,27 +1,63 @@
----
-- hosts: localhost
+- name: Provision on EC2
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - group_vars/all
   tasks:
-    - name: Create ec2 instances
+    - name: Create data grid instances
       ec2:
-        region: eu-west-2
-        key_name: {{ ssh-key }}
-        instance_type: t2.micro
-        image: "ami-08b993f76f42c3e2f"
-        wait: yes
-        exact_count: 3
+        region: "{{ region }}"
+        key_name: "{{ ssh_key }}"
+        group_id: "{{ security_group }}"
+        instance_type: "{{ instance_type }}"
+        image: "{{ image }}"
+        wait: true
+        vpc_subnet_id: "{{ subnet }}"
+        assign_public_ip: true
+        exact_count: 2
         count_tag:
-          Name: Demo
+          Role: jdg
         instance_tags:
-          Name: Demo
+          Name: datagrid
+          Role: jdg
       register: ec2
-
-    - name: Add all instance public IPs to host group
-      add_host:
-        hostname: "{{ item.public_ip }}"
-        groupname: jdg
+    - name: Create loader instances
+      ec2:
+        region: "{{ region }}"
+        key_name: "{{ ssh_key }}"
+        group_id: "{{ security_group }}"
+        instance_type: t2.micro
+        image: "{{ image }}"
+        wait: true
+        vpc_subnet_id: "{{ subnet }}"
+        assign_public_ip: true
+        exact_count: 1
+        count_tag:
+          Role: loader
+        instance_tags:
+          Name: datagrid
+          Role: loader
+      register: ec2
+    - name: Wait for SSH to come up
+      delegate_to: "{{ item.public_dns_name }}"
+      wait_for_connection:
+        delay: 60
+        timeout: 320
       loop: "{{ ec2.instances }}"
+    - name: Refresh inventory to ensure new instances exist in inventory
+      meta: refresh_inventory
 
 - name: install jdg nodes
+  gather_facts: True
   hosts: jdg
   roles:
-    - jdg
+  - role: jdg
+    vars:
+      cloud: true
+
+- name: install loader nodes
+  gather_facts: True
+  hosts: loader
+  roles:
+    - role: loader
