@@ -15,7 +15,7 @@
         wait: true
         vpc_subnet_id: "{{ subnet }}"
         assign_public_ip: true
-        exact_count: 2
+        exact_count: "{{ cluster_size }}"
         count_tag:
           Role: jdg
         instance_tags:
@@ -27,7 +27,7 @@
         region: "{{ region }}"
         key_name: "{{ ssh_key }}"
         group_id: "{{ security_group }}"
-        instance_type: t2.micro
+        instance_type: "{{ instance_type }}"
         image: "{{ image }}"
         wait: true
         vpc_subnet_id: "{{ subnet }}"

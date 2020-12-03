@@ -3,18 +3,23 @@
 //DEPS org.infinispan:infinispan-client-hotrod:9.4.21.Final 
 //JAVA_OPTIONS -Xmx2g
 
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.io.*;
 
 import org.infinispan.client.hotrod.RemoteCache;
-import org.infinispan.client.hotrod.ProtocolVersion;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.commons.marshall.UTF8StringMarshaller;
@@ -108,17 +113,29 @@ class loader {
       RemoteCache<String, String> cache = rcm.getCache(cacheName);
       cache.clear();
 
-      Map<String, String> group = new HashMap<>();
-      for (int i = 1; i <= entries; i++) {
-         group.put(String.valueOf(i), randomPhrase.get());
-         if (group.size() == write_batch) {
+      int nThreads = Runtime.getRuntime().availableProcessors();
+      ExecutorService executorService = Executors.newFixedThreadPool(nThreads);
+      AtomicInteger counter = new AtomicInteger();
+      CompletableFuture<?>[] futures = new CompletableFuture[nThreads];
+      final int totalEntries = entries;
+      for (int i = 0; i < nThreads; i++) {
+         futures[i] = CompletableFuture.supplyAsync(() -> {
+            Map<String, String> group = new HashMap<>();
+            for(int j = counter.incrementAndGet(); j < totalEntries; j = counter.incrementAndGet()) {
+               group.put(String.valueOf(j), randomPhrase.get());
+               if (group.size() == write_batch) {
+                  cache.putAll(group);
+                  System.out.printf("Loaded %s entries\r", j);
+                  group = new HashMap<>();
+               }
+            }
             cache.putAll(group);
-            System.out.print(String.format("Loaded %s entries\r", i));
-            group = new HashMap<>();
-         }
+            return null;
+         }, executorService);
       }
-      cache.putAll(group);
       System.out.println("\n");
+      CompletableFuture.allOf(futures).join();
+      executorService.shutdownNow();
    }
 
 }

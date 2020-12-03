@@ -86,9 +86,8 @@ After generating a key pair in the EC2 console, add it as an identity:
 
 ### Change config
 
-Check the file ```group_vars/all``` for AWS related property. Minimally the property ```ssh-key``` should be change to 
-the name of the key created above. The remaining properties are specific to each AWS environment. This will be automated
-in the future.
+Check the file ```group_vars/all``` for AWS related property. Minimally the property ```ssh-key``` should be changed to the name of the key created above. Choose the cluster size with ```cluster_size```. 
+The remaining properties are specific to each AWS environment. This will be automated in the future.
 
 #### Provisioning
 
@@ -106,4 +105,8 @@ Local entries per node in the ```default``` cache:
     
 Cluster view per node:
 
-    ansible -u ec2-user  jdg -a "/opt/jdg/jboss-datagrid-7.1.0-server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered:read-attribute(name=members)"    
+    ansible -u ec2-user  jdg -a "/opt/jdg/jboss-datagrid-7.1.0-server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered:read-attribute(name=members)"   
+
+Kill the server in all nodes:
+    
+    ansible -u ec2-user jdg -a "pkill -f jboss-modules.jar"
