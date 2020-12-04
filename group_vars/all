@@ -39,7 +39,7 @@ batch: 1000
 cluster_size: 10
 
 # The key-pair name
-ssh_key: change
+ssh_key: infinispan
 
 # Region
 region: eu-west-2
@@ -48,7 +48,7 @@ region: eu-west-2
 security_group: "sg-0a55ec7795af7a6a5"
 
 # Instance type
-instance_type: c4.4xlarge
+instance_type: m4.2xlarge
 
 # Image Id
 image: "ami-08b993f76f42c3e2f"
