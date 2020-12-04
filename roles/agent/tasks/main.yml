@@ -1,0 +1,28 @@
+---
+- name: Create agent dir
+  file:
+    path: /opt/agent/
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  become: yes
+
+- name: Copy agent
+  copy:
+    src: files/agents/{{ agent_zip }}
+    dest: /opt/agent/agent.zip
+
+- name: Extract agent
+  unarchive:
+    src: /opt/agent/agent.zip
+    dest: /opt/agent
+    remote_src: true
+
+- name: Overlay agent files
+  copy:
+    src: ./files/agents/overlay/
+    dest: /opt/agent/
+    directory_mode: yes
+
+- name: Add Agent ops
+  shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ agent_opts }}\""  /opt/jdg/server/bin/standalone.conf

@@ -2,6 +2,7 @@
   hosts: jdg
   roles:
     - jdg
+    - agent
 
 - name: install loader node
   hosts: loader

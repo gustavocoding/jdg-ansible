@@ -24,7 +24,8 @@
   copy:
     src: "{{ item }}"
     dest: /opt/loader
-    mode: 755
+    mode: '0755'
+    directory_mode: yes
   with_fileglob: "files/*"
 
 - name: Loading data

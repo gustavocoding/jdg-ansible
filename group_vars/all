@@ -36,10 +36,7 @@ batch: 1000
 
 ##### AWS specific variables
 # Cluster size
-cluster_size: 10
-
-# The key-pair name
-ssh_key: infinispan
+cluster_size: 2
 
 # Region
 region: eu-west-2

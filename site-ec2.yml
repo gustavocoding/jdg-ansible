@@ -5,10 +5,29 @@
   vars_files:
     - group_vars/all
   tasks:
+    - name: Generate new SSH key pair
+      ec2_key:
+        name: infinispan
+        state: present
+        force: true
+        wait: true
+      register: ec2key
+
+    - name: Save key pair locally
+      copy:
+        content: "{{ ec2key.key.private_key }}"
+        dest: "./infinispan.pem"
+        mode: 0600
+      when: ec2key.key.private_key is defined
+
+    - name: Register SSH identity
+      local_action: command ssh-add ./infinispan.pem
+      when: ec2key.key.private_key is defined
+
     - name: Create data grid instances
       ec2:
         region: "{{ region }}"
-        key_name: "{{ ssh_key }}"
+        key_name: infinispan
         group_id: "{{ security_group }}"
         instance_type: "{{ instance_type }}"
         image: "{{ image }}"
@@ -25,7 +44,7 @@
     - name: Create loader instance
       ec2:
         region: "{{ region }}"
-        key_name: "{{ ssh_key }}"
+        key_name: infinispan
         group_id: "{{ security_group }}"
         instance_type: "c4.4xlarge"
         image: "{{ image }}"
@@ -52,6 +71,7 @@
   gather_facts: True
   hosts: jdg
   roles:
+  - role: agent
   - role: jdg
     vars:
       cloud: true

@@ -4,3 +4,4 @@ files/server/*
 hosts
 ~ec2-user/
 .iml
+*.pem

@@ -15,3 +15,7 @@
         state: absent
         region: "{{ region }}"
       with_items: "{{ec2_info.instances}}"
+    - name: Remove key
+      ec2_key:
+        name: infinispan
+        state: absent

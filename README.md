@@ -78,16 +78,21 @@ Get the number of members in the cluster:
     export AWS_ACCESS_KEY_ID='xxxx'
     export AWS_SECRET_ACCESS_KEY='xxxx'
 
-##### Add SSH Keys
-
-After generating a key pair in the EC2 console, add it as an identity:
-
-    ssh-add ~/.ssh/keys.pem 
-
 ### Change config
 
-Check the file ```group_vars/all``` for AWS related property. Minimally the property ```ssh-key``` should be changed to the name of the key created above. Choose the cluster size with ```cluster_size```. 
-The remaining properties are specific to each AWS environment. This will be automated in the future.
+The file ```group_vars/all``` contains several properties for AWS provision:
+
+* ```cluster_size```: Number of JDG nodes to provision
+
+* ```region```: AWS region, e.g., ```eu-west-2```. Check [here](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html) for a list of valid ids
+
+* ```security_group```: An existing security group with SSH inbound enabled, and unrestricted access between instances in the internal subnet. 
+
+* ```instance_type```: Check [here](https://aws.amazon.com/ec2/instance-types/) for available instances
+
+* ```image```: The image to run
+
+* ```subnet```: The subnet id. Check the AWS console.
 
 #### Provisioning
 
