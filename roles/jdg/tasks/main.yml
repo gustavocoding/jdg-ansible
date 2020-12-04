@@ -45,14 +45,6 @@
     dest: /opt/jdg/server/
     directory_mode: yes
 
-- name: Create agent dir
-  file:
-    path: /opt/agent/
-    state: directory
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-  become: yes
-
 - name: Add GC opts
   shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ gc_opts }}\""  /opt/jdg/*/bin/standalone.conf
 
