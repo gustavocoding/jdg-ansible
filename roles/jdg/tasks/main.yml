@@ -18,11 +18,11 @@
 - name: Copy server
   copy:
     src: files/servers/{{ server_zip }}
-    dest: /opt/jdg/server.zip
+    dest: /opt/server.zip
 
 - name: Extract Server
   unarchive:
-    src: /opt/jdg/server.zip
+    src: /opt/server.zip
     dest: /opt/jdg
     remote_src: true
 
@@ -30,10 +30,19 @@
   shell: ls -d /opt/jdg/*server*/ | head -1
   register: server_dir
 
+- name: Create the server symlink
+  file:
+    src: "{{ server_dir.stdout }}"
+    dest: /opt/jdg/server
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    state: link
+  become: yes
+
 - name: Overlay server files
   copy:
     src: ./files/servers/overlay/
-    dest: "{{ server_dir.stdout }}/"
+    dest: /opt/jdg/server/
     directory_mode: yes
 
 - name: Create agent dir
@@ -86,9 +95,9 @@
   when: custom_server_config is undefined and cloud is undefined
 
 - name: start server
-  shell: cd /opt/jdg/*server*/ && nohup bin/standalone.sh -c {{ server_xml }} -b $(hostname -i) &
+  shell: cd /opt/jdg/server/ && nohup bin/standalone.sh -c {{ server_xml }} -b $(hostname -i) &
   when: cloud is undefined
 
 - name: start server
-  shell: cd /opt/jdg/*server*/ && nohup bin/standalone.sh -c {{ server_xml }} -Djboss.default.jgroups.stack=s3-public -Djgroups.s3.bucket="jgroups-1" -b $(hostname -i) &
+  shell: cd /opt/jdg/server/ && nohup bin/standalone.sh -c {{ server_xml }} -Djboss.default.jgroups.stack=s3-public -Djgroups.s3.bucket="jgroups-1" -b $(hostname -i) &
   when: cloud is defined

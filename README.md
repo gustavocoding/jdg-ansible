@@ -59,11 +59,11 @@ To execute a shell command in all nodes of the cluster, for e.g. ```pgrep -f jbo
     
 Get the number of entries in each server:
 
-    ansible -u root -i hosts jdg -a "/opt/jdg/jboss-datagrid-7.1.0-server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered/distributed-cache=default:read-attribute(name=number-of-entries)"
+    ansible -u root -i hosts jdg -a "/opt/jdg/server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered/distributed-cache=default:read-attribute(name=number-of-entries)"
 	
 Get the number of members in the cluster:
 
-     ansible -u root -i hosts jdg -a "/opt/jdg/jboss-datagrid-7.1.0-server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered:read-attribute(name=members)"	
+     ansible -u root -i hosts jdg -a "/opt/jdg/server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered:read-attribute(name=members)"	
 	
 ### Run on AWS
 
@@ -101,11 +101,11 @@ The remaining properties are specific to each AWS environment. This will be auto
 
 Local entries per node in the ```default``` cache: 
 
-    ansible -u ec2-user  jdg -a "/opt/jdg/jboss-datagrid-7.1.0-server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered/distributed-cache=default:read-attribute(name=number-of-entries)"
+    ansible -u ec2-user  jdg -a "/opt/jdg/server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered/distributed-cache=default:read-attribute(name=number-of-entries)"
     
 Cluster view per node:
 
-    ansible -u ec2-user  jdg -a "/opt/jdg/jboss-datagrid-7.1.0-server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered:read-attribute(name=members)"   
+    ansible -u ec2-user  jdg -a "/opt/jdg/server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered:read-attribute(name=members)"   
 
 Kill the server in all nodes:
     
