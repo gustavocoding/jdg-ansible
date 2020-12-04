@@ -22,12 +22,12 @@
           Name: datagrid
           Role: jdg
       register: ec2
-    - name: Create loader instances
+    - name: Create loader instance
       ec2:
         region: "{{ region }}"
         key_name: "{{ ssh_key }}"
         group_id: "{{ security_group }}"
-        instance_type: "{{ instance_type }}"
+        instance_type: "c4.4xlarge"
         image: "{{ image }}"
         wait: true
         vpc_subnet_id: "{{ subnet }}"
