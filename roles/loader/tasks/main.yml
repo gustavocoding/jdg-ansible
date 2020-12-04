@@ -20,12 +20,12 @@
     group: "{{ ansible_user }}"
   become: yes
 
-- name: Copy loader files
+- name:  Copy loader files
   copy:
-    src: ./loader/
+    src: "{{ item }}"
     dest: /opt/loader
-    directory_mode: yes
-    mode: '0755'
+    mode: 755
+  with_fileglob: "files/*"
 
 - name: Loading data
   shell: |
