@@ -2,4 +2,5 @@ files/agent/*
 files/server/*
 .idea
 hosts
+~ec2-user/
 .iml
