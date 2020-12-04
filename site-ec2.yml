@@ -8,6 +8,7 @@
     - name: Generate new SSH key pair
       ec2_key:
         name: infinispan
+        region: "{{ region }}"
         state: present
         force: true
         wait: true

@@ -6,6 +6,7 @@
     - group_vars/all
   tasks:
     - ec2_instance_info:
+        region: "{{ region }}"
         filters:
           "tag:Name": datagrid
       register: ec2_info
@@ -18,4 +19,5 @@
     - name: Remove key
       ec2_key:
         name: infinispan
+        region: "{{ region }}"
         state: absent
