@@ -13,18 +13,22 @@ This playbook installs a JDG cluster, app dynamic agent and populates it with sa
 
 ### Configuration
 
-Change the file ```group_vars/all``` to customize the cluster creation. The following properties are available:
+Change the file ```vars/default.yml``` to customize the cluster creation. The file ```var/local.yml``` allows to override properties toonly for local execution (docker). 
+
+The following properties are available:
+
+* ```cluster_size```: Number of JDG nodes to provision
 
 * ```java_version```: The java version to use, default is ```8.0.275.open-adpt```. For possible values consult the output of the command ```sdk list java``` from [sdkman](https://sdkman.io/) (column Identifier)
 
 * ```server_zip```: The server zip to use, should be pre-copied to ```files/servers```
 
-* ```custom_server_config```: An optional server config to use. The default is to use ```clustered.xml``` from the servers zip or ```cloud.xml``` for EC2. To use custom config, uncomment this property and make sure the file is under ```servers/overlay```, in the same directory structure as the server.
+* ```custom_server_config```: An optional server config to use. The default is to use ```clustered.xml``` from the servers zip or ```cloud.xml``` for EC2. To use a custom config, uncomment this property and make sure the file is under ```servers/overlay```, in the same directory structure as the server.
 
 * ```agent_zip```: The agent zip to use, should be pre-copied to ```files/agents```
   
-The properties ```gc_opts```, ```agent_opts``` and ```fr_opts``` will be added together to compose
-the ```JAVA_OPTS``` used to start the server, and contain respectively, the garbage collector options, the agent options, and the flight recording options.
+The properties ```gc_opts```, ```agent_opts``` and ```heap_size``` will be added together to compose
+the ```JAVA_OPTS``` used to start the server, and contain respectively, the garbage collector options, the agent options, and the heap size options.
   
 The following properties controls the initial data loading in the cluster:
 
@@ -40,14 +44,9 @@ The following properties controls the initial data loading in the cluster:
 
 ### Run locally on docker
 
-Create some local docker containers using the script: 
+#### Provisioning
 
-    docker/create-cluster.sh -s 3
-    
-The script will write a file ```hosts``` with the ips of the containers. To run the playbook:
-
-	export ANSIBLE_HOST_KEY_CHECKING=false; \
-	ansible-playbook -u root -i hosts site.yml
+	ansible-playbook -i hosts site-local.yml
 
 The playbook will install and start all the servers.
 
@@ -64,6 +63,10 @@ Get the number of entries in each server:
 Get the number of members in the cluster:
 
      ansible -u root -i hosts jdg -a "/opt/jdg/server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered:read-attribute(name=members)"	
+
+#### Terminating resources
+
+    ansible-playbook shutdown-local.yml
 	
 ### Run on AWS
 
@@ -78,11 +81,9 @@ Get the number of members in the cluster:
     export AWS_ACCESS_KEY_ID='xxxx'
     export AWS_SECRET_ACCESS_KEY='xxxx'
 
-### Change config
+#### Change config
 
-The file ```group_vars/all``` contains several properties for AWS provision:
-
-* ```cluster_size```: Number of JDG nodes to provision
+The file ```vars/default.yml``` contains several properties for AWS provision:
 
 * ```region```: AWS region, e.g., ```eu-west-2```. Check [here](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html) for a list of valid ids
 

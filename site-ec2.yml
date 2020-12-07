@@ -3,7 +3,7 @@
   connection: local
   gather_facts: false
   vars_files:
-    - group_vars/all
+    - vars/default.yml
   tasks:
     - name: Generate new SSH key pair
       ec2_key:
@@ -69,6 +69,8 @@
       meta: refresh_inventory
 
 - name: install jdg nodes
+  vars_files:
+    - vars/default.yml
   gather_facts: True
   hosts: jdg
   roles:
@@ -78,6 +80,8 @@
   - role: agent
 
 - name: install loader nodes
+  vars_files:
+    - vars/default.yml
   gather_facts: True
   hosts: loader
   roles:

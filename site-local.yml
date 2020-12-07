@@ -1,0 +1,67 @@
+- name: Provision locally on Docker
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - vars/default.yml
+    - vars/local.yml
+  tasks:
+    - name: Start jdg containers
+      docker_container:
+        name: "jdg{{ item }}"
+        labels:
+          name: "jdg{{ item }}"
+          site: local
+        image: gustavonalle/centos
+      with_sequence: "count={{ cluster_size }}"
+
+    - name: Start loader container
+      docker_container:
+        image: gustavonalle/centos
+        name: loader
+        labels:
+          name: "loader"
+          site: local
+
+    - name: list of containers
+      command: docker ps --filter "label=site=local" -q
+      register: containers
+
+    - name: add keys to jdg
+      shell: |
+          docker cp ~/.ssh/id_rsa.pub {{ item }}:/root/.ssh/authorized_keys
+          docker exec {{ item }} chown root:root /root/.ssh/authorized_keys
+      with_items: "{{ containers.stdout.split('\n') }}"
+
+    - name: Build inventory
+      shell: |
+        echo "[jdg]" > hosts
+        for c in $(docker ps -q -f name=jdg)
+        do
+          echo -e $(docker exec $c hostname -i) >> hosts
+        done
+        echo "[loader]" >> hosts
+        echo -e $(docker exec loader hostname -i) >> hosts
+
+    - name: Refresh inventory to ensure new instances exist in inventory
+      meta: refresh_inventory
+
+- name: install jdg nodes
+  hosts: jdg
+  user: root
+  vars_files:
+    - vars/default.yml
+    - vars/local.yml
+  roles:
+    - jdg
+    - agent
+
+- name: install loader node
+  hosts: loader
+  user: root
+  vars_files:
+    - vars/default.yml
+    - vars/local.yml
+  roles:
+    - loader
+

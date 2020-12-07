@@ -1,0 +1,15 @@
+- name: Stop containers
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - vars/default.yml
+    - vars/local.yml
+  tasks:
+    - name: list of containers
+      command: docker ps --filter "label=site=local" -q
+      register: containers
+
+    - name: stop and remove containers
+      command: docker rm -f {{ item }}
+      with_items: "{{ containers.stdout.split('\n') }}"

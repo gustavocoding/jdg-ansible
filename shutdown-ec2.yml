@@ -2,8 +2,7 @@
   hosts: localhost
   connection: local
   gather_facts: true
-  vars_files:
-    - group_vars/all
+    - vars/local.yml
   tasks:
     - ec2_instance_info:
         region: "{{ region }}"

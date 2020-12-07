@@ -45,11 +45,11 @@
     dest: /opt/jdg/server/
     directory_mode: yes
 
+- name: Add Heap sizes
+  shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ heap_size }}\""  /opt/jdg/*/bin/standalone.conf
+
 - name: Add GC opts
   shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ gc_opts }}\""  /opt/jdg/*/bin/standalone.conf
-
-- name: Add JFR opts
-  shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ fr_opts }}\""  /opt/jdg/*/bin/standalone.conf
 
 - name: set custom profile
   set_fact:

@@ -1,0 +1,7 @@
+# GC options for the server
+heap_size: -Xms1g -Xmx1g
+
+# Initial data loading
+entries: 30000
+
+cluster_size: 3

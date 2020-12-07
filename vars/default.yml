@@ -10,14 +10,17 @@ server_zip: jboss-datagrid-7.1.0-server.zip
 # The zip containing the appdynamics agent, relative to the files/agent folder
 agent_zip: AppServerAgent-20.10.0.31173.zip
 
+# Heap sizes
+heap_size: -Xms20g -Xmx20g
+
 # GC options for the server
-gc_opts: -Xms20g -Xmx20g -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=0 -XX:MaxGCPauseMillis=200 -XX:GCPauseIntervalMillis=5000
+gc_opts: -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=0 -XX:MaxGCPauseMillis=200 -XX:GCPauseIntervalMillis=5000
 
 # Agent options for the server
 agent_opts: -Djboss.modules.system.pkgs=org.jboss.byteman,com.singularity -javaagent:/opt/agent/javaagent.jar
 
-# JFR options for the server
-fr_opts: -XX:FlightRecorderOptions=stackdepth=128 -XX:StartFlightRecording=dumponexit=true,filename=server.jfr
+# Cluster size
+cluster_size: 10
 
 # Cache name
 cache_name: default
@@ -35,8 +38,6 @@ protocol: 2.5
 batch: 1000
 
 ##### AWS specific variables
-# Cluster size
-cluster_size: 10
 
 # Region
 region: eu-west-2
