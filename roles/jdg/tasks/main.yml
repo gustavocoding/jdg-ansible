@@ -66,6 +66,10 @@
     server_xml: "clustered.xml"
   when: custom_server_config is undefined and cloud is undefined
 
+- name: stop server
+  shell: pkill java || echo "Server was not running."
+  tags: admin
+
 - name: start server
   shell: cd /opt/jdg/server/ && nohup bin/standalone.sh -c {{ server_xml }} -b $(hostname -i) &
   when: cloud is undefined
