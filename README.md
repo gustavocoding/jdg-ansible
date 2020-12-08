@@ -118,9 +118,6 @@ Kill the server in all nodes:
     
     ansible -u ec2-user jdg -a "pkill -f jboss-modules.jar"
 
-
-jcmd 5368 JFR.start duration=60s filename=myrecording.jfr
-
 ### Running stress tests 
 
 After provisioning either a local or an AWS cluster, the playbook ```stress.yml``` can be used to orchestrate the following tasks:
