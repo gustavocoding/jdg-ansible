@@ -67,9 +67,17 @@
     server_xml: "clustered.xml"
   when: custom_server_config is undefined and cloud is undefined
 
+- name: server pid
+  shell: pgrep java || echo "no java process running"
+  register: pid
+
 - name: stop server
-  shell: pkill java || echo "Server was not running."
-  tags: admin
+  shell: kill {{ pid.stdout }} || echo "Server was not running."
+
+- name: Wait until server stops
+  wait_for:
+    path: /proc/{{ pid.stdout }}/status
+    state: absent
 
 - name: start server
   shell: cd /opt/jdg/server/ && nohup bin/standalone.sh -c {{ server_xml }} -b $(hostname -i) &
