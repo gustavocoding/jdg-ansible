@@ -1,0 +1,37 @@
+- name: Prepare JDG servers
+  hosts: jdg
+  vars_files:
+    - vars/default.yml
+  tasks:
+    - set_fact:
+        jfrfile: "jdg-{{ inventory_hostname }}-{{ 100 | random }}.jfr"
+    - name: Start JFR
+      shell: jcmd $(pgrep -n java) JFR.start name=stress filename={{ jfrfile }}
+
+- name: Run stress test
+  hosts: loader
+  vars_files:
+    - vars/default.yml
+  tasks:
+    - name: Run stress
+      shell: /opt/loader/stress.java -s={{ groups['jdg'][0] }} -c={{ cache_name }} -d={{ duration_min }} -p={{ protocol }} -r={{ write_percent }} -t={{ stress_threads }}
+
+- name: Fetch JFR
+  hosts: jdg
+  vars_files:
+    - vars/default.yml
+  tasks:
+    - name: Dump JFR
+      shell: jcmd $(pgrep -n java) JFR.dump name=stress
+    - name: Stop JFR
+      shell: jcmd $(pgrep -n java) JFR.stop name=stress
+    - name: Compress JFR
+      shell: cd /opt/jdg/server/ && zip -rj /opt/jdg/server/{{ jfrfile }}.zip /opt/jdg/server/{{ jfrfile }}
+    - name: Download JFRs
+      fetch:
+        src: "/opt/jdg/server/{{ jfrfile }}.zip"
+        dest: "{{ jfrfile }}.zip"
+        flat: yes
+        validate_checksum: no
+
+

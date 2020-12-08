@@ -67,6 +67,7 @@ Get the number of members in the cluster:
 #### Terminating resources
 
     ansible-playbook shutdown-local.yml
+
 	
 ### Run on AWS
 
@@ -116,3 +117,41 @@ Cluster view per node:
 Kill the server in all nodes:
     
     ansible -u ec2-user jdg -a "pkill -f jboss-modules.jar"
+
+
+jcmd 5368 JFR.start duration=60s filename=myrecording.jfr
+
+### Running stress tests 
+
+After provisioning either a local or an AWS cluster, the playbook ```stress.yml``` can be used to orchestrate the following tasks:
+
+* Starting JFR in all jdg nodes
+* Run the ```stress.java``` script that will create load
+* Dump the JFR file
+* Download the JFR
+
+#### Configuration
+
+The variables below affect the stress test:
+
+* ```duration_min```: Duration in minutes to run the test
+
+* ```stress_threads```: Number of threads to do requests in the server
+
+* ```write_percent```: The percentage of requests that are puts, when compared to removes
+
+#### Running
+
+For the local docker cluster:
+    
+    ansible-playbook -u root -i hosts stress.yml
+
+For the AWS cluster:
+
+    ansible-playbook -u ec2-user stress.yml
+
+Using custom variables: 
+
+    ansible-playbook -u ec2-user --extra-vars "stress_threads=500 duration_min=60 write_percent=90"  stress.yml stress.yml          
+
+runs the stress test for 1 hour, with 500 threads, with 90% writes and 10% deletes.

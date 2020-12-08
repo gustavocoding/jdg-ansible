@@ -1,3 +1,5 @@
+########## Provisioning related variables
+
 # Java version must be a string supported from SDKMan
 java_version: 8.0.275.open-adpt
 
@@ -22,6 +24,7 @@ agent_opts: -Djboss.modules.system.pkgs=org.jboss.byteman,com.singularity -javaa
 # Cluster size
 cluster_size: 10
 
+########## Initial data loading variables
 # Cache name
 cache_name: default
 
@@ -37,7 +40,14 @@ protocol: 2.5
 # Load batch
 batch: 1000
 
-##### AWS specific variables
+########## Stress test related variables
+duration_min: 1
+
+stress_threads: 10
+
+write_percent: 70
+
+########## AWS specific variables
 
 # Region
 region: eu-west-2
