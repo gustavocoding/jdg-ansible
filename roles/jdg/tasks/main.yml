@@ -43,7 +43,8 @@
   copy:
     src: ./files/servers/overlay/
     dest: /opt/jdg/server/
-    directory_mode: yes
+    directory_mode: 0775
+  become: yes
 
 - name: Add Heap sizes
   shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ heap_size }}\""  /opt/jdg/*/bin/standalone.conf
