@@ -7,7 +7,7 @@ java_version: 8.0.275.open-adpt
 server_zip: jboss-datagrid-7.1.0-server.zip
 
 # The server xml config to use. For custom config, copy it first to ```servers/overlay/standalone/configuration```. Defaults to "clustered.xml" or "cloud.xml"
-# custom_server_config:
+custom_server_config: session-cloud.xml
 
 # The zip containing the appdynamics agent, relative to the files/agent folder
 agent_zip: AppServerAgent-20.10.0.31173.zip
@@ -26,7 +26,7 @@ cluster_size: 10
 
 ########## Initial data loading variables
 # Cache name
-cache_name: default
+cache_name: session
 
 # Initial data loading
 entries: 3000000
@@ -43,7 +43,7 @@ batch: 1000
 ########## Stress test related variables
 duration_min: 1
 
-stress_threads: 10
+stress_threads: 1000
 
 read_percent: 60
 
