@@ -22,7 +22,7 @@
   copy:
     src: ./files/agents/overlay/
     dest: /opt/agent/
-    directory_mode: yes
+    directory_mode: 0755
 
 - name: Add Agent ops
   shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ agent_opts }}\""  /opt/jdg/server/bin/standalone.conf
