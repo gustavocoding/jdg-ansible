@@ -50,13 +50,13 @@ The following properties controls the initial data loading in the cluster:
 
 The playbook will install and start all the servers.
 
-#### Run command in all servers
+#### (Optional) Run command in all servers
 
 To execute a shell command in all nodes of the cluster, for e.g. ```pgrep -f jboss```:
 
     ansible -u root -i hosts all -a "pgrep -f jboss" 
     
-Get the number of entries in each server:
+Get the number of entries in the default cache of each server:
 
     ansible -u root -i hosts jdg -a "/opt/jdg/server/bin/cli.sh -c /subsystem=datagrid-infinispan/cache-container=clustered/distributed-cache=default:read-attribute(name=number-of-entries)"
 	
