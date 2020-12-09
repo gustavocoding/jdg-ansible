@@ -73,7 +73,7 @@ public class stress implements Callable<Void> {
    private static final Random RANDOM = new Random();
 
    RemoteCache<String, String> cache;
-   AtomicInteger size = new AtomicInteger();
+   AtomicInteger size = new AtomicInteger(0);
 
    public static void main(String[] args) {
       int exitCode = new CommandLine(new stress()).execute(args);
@@ -114,15 +114,15 @@ public class stress implements Callable<Void> {
 
    @Benchmark
    @BenchmarkMode({Mode.SampleTime})
-   public void loadGenerator(Blackhole ignored) {
+   public void loadGenerator(Blackhole blackhole) {
       int currentSize = size.get();
       int k = RANDOM.nextInt(currentSize);
       String key = String.valueOf(k);
       if (k < currentSize * Integer.parseInt(writePercent) / 100f) {
          int id = size.incrementAndGet();
-         cache.put(String.valueOf(id), org.infinispan.loader.randomPhrase(10));
+         blackhole.consume(cache.put(String.valueOf(id), org.infinispan.loader.randomPhrase(10)));
       } else {
-         cache.remove(key);
+         blackhole.consume(cache.remove(key));
          size.decrementAndGet();
       }
    }
