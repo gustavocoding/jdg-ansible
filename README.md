@@ -152,3 +152,8 @@ Using custom variables:
     ansible-playbook -u ec2-user --extra-vars "stress_threads=500 duration_min=60 write_percent=90"  stress.yml stress.yml          
 
 runs the stress test for 1 hour, with 500 threads, with 90% writes and 10% deletes.
+
+#### Results
+
+JFRs for each JDG node and the latency results for the loader will be saved in the ```results``` folder.
+

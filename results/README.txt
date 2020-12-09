@@ -1,0 +1,1 @@
+This folder will contain stress test results and JFR files.

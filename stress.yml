@@ -30,8 +30,21 @@
     - name: Download JFRs
       fetch:
         src: "/opt/jdg/server/{{ jfrfile }}.zip"
-        dest: "{{ jfrfile }}.zip"
+        dest: "results/{{ jfrfile }}.zip"
         flat: yes
         validate_checksum: no
 
+- name: Fetch latency results
+  hosts: loader
+  vars_files:
+    - vars/default.yml
+  tasks:
+    - name: obtain result file
+      shell: ls -Art ~/ | tail -n 1
+      register: result
+    - name: Download
+      fetch:
+        src: "{{ result.stdout }}"
+        dest: "results/{{ result.stdout }}"
+        flat: yes
 
