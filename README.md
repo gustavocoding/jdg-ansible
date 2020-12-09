@@ -13,7 +13,7 @@ This playbook installs a JDG cluster, app dynamic agent and populates it with sa
 
 ### Configuration
 
-Change the file ```vars/default.yml``` to customize the cluster creation. The file ```var/local.yml``` allows to override properties toonly for local execution (docker). 
+Change the file ```vars/default.yml``` to customize the cluster creation. The file ```var/local.yml``` allows to override properties for local execution (docker). 
 
 The following properties are available:
 
