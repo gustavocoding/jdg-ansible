@@ -75,9 +75,14 @@
   shell: kill {{ pid.stdout }} || echo "Server was not running."
 
 - name: Wait until server stops
-  wait_for:
-    path: /proc/{{ pid.stdout }}/status
-    state: absent
+  block:
+    - name: Make sure server is gone
+      wait_for:
+        path: /proc/{{ pid.stdout }}/status
+        state: absent
+  rescue:
+    - name: force kill
+      shell: kill -9 {{ pid.stdout }} || echo "already gone!"
 
 - name: start server
   shell: cd /opt/jdg/server/ && nohup bin/standalone.sh -c {{ server_xml }} -b $(hostname -i) &
