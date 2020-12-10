@@ -74,10 +74,10 @@
   gather_facts: True
   hosts: jdg
   roles:
-  - role: jdg
-    vars:
-      cloud: true
-  - role: agent
+    - role: agent
+    - role: jdg
+      vars:
+        cloud: true
 
 - name: install loader nodes
   vars_files:

@@ -53,8 +53,8 @@
     - vars/default.yml
     - vars/local.yml
   roles:
-    - jdg
     - agent
+    - jdg
 
 - name: install loader node
   hosts: loader

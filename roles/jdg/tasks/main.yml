@@ -52,6 +52,14 @@
 - name: Add GC opts
   shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ gc_opts }}\""  /opt/jdg/*/bin/standalone.conf
 
+- stat:
+    path: /opt/agent
+  register: agent_dir
+
+- name: Add Agent ops
+  shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ agent_opts }}\""  /opt/jdg/server/bin/standalone.conf
+  when: agent_dir is defined
+
 - name: set custom profile
   set_fact:
     server_xml: "{{ custom_server_config }}"
@@ -91,3 +99,8 @@
 - name: start server
   shell: cd /opt/jdg/server/ && nohup bin/standalone.sh -c {{ server_xml }} -Djboss.default.jgroups.stack=s3-public -Djgroups.s3.bucket="jgroups-1" -b $(hostname -i) &
   when: cloud is defined
+
+- name: Wait for server to start
+  wait_for:
+    port: 11222
+    host: "{{ inventory_hostname }}"
