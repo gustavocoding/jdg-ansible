@@ -58,7 +58,7 @@
 
 - name: Add Agent ops
   shell: sed -i "/^#PRESERV.*/a JAVA_OPTS=\"\$JAVA_OPTS {{ agent_opts }}\""  /opt/jdg/server/bin/standalone.conf
-  when: agent_dir is defined
+  when: agent_dir.stat.exists
 
 - name: set custom profile
   set_fact:
