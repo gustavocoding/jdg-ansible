@@ -9,10 +9,17 @@
 
 package org.infinispan;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.infinispan.client.hotrod.ProtocolVersion;
 import org.infinispan.client.hotrod.RemoteCache;
@@ -27,6 +34,7 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
@@ -40,13 +48,13 @@ import picocli.CommandLine.Option;
 @State(Scope.Benchmark)
 @Fork(value = 1, jvmArgs = {"-Xmx20G"})
 @Command(name = "Stress", mixinStandardHelpOptions = true, version = "stress 0.1", description = "Simple stress test for JDG.")
+@SuppressWarnings("unused")
 public class stress implements Callable<Void> {
    public static final String DEFAULT_PROTOCOL = "2.5";
    public static final String DEFAULT_CACHE = "default";
    public static final String DEFAULT_SERVER = "127.0.0.1:11222";
    public static final String DEFAULT_THREADS = "10";
    public static final String DEFAULT_DURATION_MIN = "1";
-   public static final String DEFAULT_WRITE_PERCENT = "70";
 
    @Option(names = "-t", description = "The number of threads.", defaultValue = DEFAULT_THREADS)
    private int threads;
@@ -66,14 +74,22 @@ public class stress implements Callable<Void> {
    @Param(value = DEFAULT_SERVER)
    private String server;
 
-   @Option(names = "-r", description = "Write percentage", defaultValue = DEFAULT_WRITE_PERCENT)
-   @Param(value = DEFAULT_WRITE_PERCENT)
+   @Option(names = "-w", description = "Write percentage", required = true)
+   @Param(value = "0")
    private String writePercent;
+
+   @Option(names = "-g", description = "Get percentage", required = true)
+   @Param(value = "0")
+   private String getPercent;
+
+   @Option(names = "-r", description = "Remove percentage", required = true)
+   @Param(value = "0")
+   private String removePercent;
 
    private static final Random RANDOM = new Random();
 
    RemoteCache<String, String> cache;
-   AtomicInteger size = new AtomicInteger(0);
+   Helper helper;
 
    public static void main(String[] args) {
       int exitCode = new CommandLine(new stress()).execute(args);
@@ -91,15 +107,14 @@ public class stress implements Callable<Void> {
             .param("server", server)
             .param("cacheName", cacheName)
             .param("writePercent", writePercent)
-            .measurementTime(new TimeValue(durationMin, TimeUnit.MINUTES))
+            .param("getPercent", getPercent)
+            .param("removePercent", removePercent)
+            .measurementTime(new TimeValue(30, TimeUnit.SECONDS))
             .output(String.format("result-%d.txt", System.currentTimeMillis()))
             .build();
       new Runner(opt).run();
       return null;
    }
-
-
-   String protocolValue;
 
    @Setup
    public void setup() {
@@ -107,23 +122,122 @@ public class stress implements Callable<Void> {
       clientBuilder.addServers(server + ";");
       clientBuilder.version(ProtocolVersion.PROTOCOL_VERSION_25);
       clientBuilder.marshaller(new UTF8StringMarshaller());
+      clientBuilder.forceReturnValues(true);
       RemoteCacheManager rcm = new RemoteCacheManager(clientBuilder.build());
       cache = rcm.getCache(cacheName);
-      size.set(cache.size());
+      helper = new Helper(writePercent, getPercent, removePercent, cache.size());
+   }
+
+   @TearDown
+   public void printExtraInfo() {
+      System.out.printf("Gets=%d, Empty Gets=%d, Puts=%d, Remove existing=%d, Remove unexistent=%d%n%n",
+            helper.gets.longValue(), helper.emptyGets.longValue(), helper.puts.longValue(), helper.removes.longValue(), helper.emptyRemoves.longValue());
    }
 
    @Benchmark
    @BenchmarkMode({Mode.SampleTime})
    public void loadGenerator(Blackhole blackhole) {
-      int currentSize = size.get();
-      int k = RANDOM.nextInt(currentSize);
-      String key = String.valueOf(k);
-      if (k < currentSize * Integer.parseInt(writePercent) / 100f) {
-         int id = size.incrementAndGet();
-         blackhole.consume(cache.put(String.valueOf(id), org.infinispan.loader.randomPhrase(10)));
-      } else {
-         blackhole.consume(cache.remove(key));
-         size.decrementAndGet();
+      switch (helper.generateOp()) {
+         case PUT:
+            String newId = helper.generateKeyForInserting();
+            blackhole.consume(cache.put(newId, org.infinispan.loader.randomPhrase(10)));
+            helper.entryInserted(newId);
+            break;
+         case REMOVE:
+            String keyToRemove = helper.generateKeyForDeleting();
+            String returnValue = cache.remove(keyToRemove);
+            helper.entryDeleted(keyToRemove, returnValue);
+            break;
+         default:
+            String keyToRead = helper.generateKeyForReading();
+            String ret = cache.get(keyToRead);
+            helper.entryRead(keyToRead, ret);
+            break;
+      }
+   }
+
+   static final class Helper {
+      enum Operation {PUT, GET, REMOVE}
+
+      private final Random random = new Random(0);
+      private final int writePercent;
+      private final int readPercent;
+      private final LongAdder puts = new LongAdder();
+      private final LongAdder gets = new LongAdder();
+      private final LongAdder emptyGets = new LongAdder();
+      private final LongAdder removes = new LongAdder();
+      private final LongAdder emptyRemoves = new LongAdder();
+      private final Queue<String> usedKeys = new ConcurrentLinkedQueue<>();
+      private final Queue<String> deletedKeys = new ConcurrentLinkedQueue<>();
+      private final AtomicInteger counter;
+      private static final String INVALID_KEY = "-1";
+
+      public Helper(String writePct, String getPct, String removePct, int size) {
+         int wp = Integer.parseInt(writePct);
+         int gp = Integer.parseInt(getPct);
+         int rp = Integer.parseInt(removePct);
+
+         if (wp + gp + rp != 100) throw new RuntimeException("Invalid Percentages");
+
+         this.writePercent = wp;
+         this.readPercent = gp;
+         List<String> ids = IntStream.range(1, size).boxed().map(String::valueOf).collect(Collectors.toList());
+         Collections.shuffle(ids, random);
+         usedKeys.addAll(ids);
+         counter = new AtomicInteger(ids.size());
+      }
+
+      void entryInserted(String key) {
+         puts.increment();
+         usedKeys.add(key);
+      }
+
+      void entryDeleted(String key, Object returnValue) {
+         deletedKeys.add(key);
+         usedKeys.remove(key);
+         if (returnValue == null) {
+            emptyRemoves.increment();
+         } else {
+            removes.increment();
+         }
+      }
+
+      public void entryRead(String keyToRead, Object returnValue) {
+         if (returnValue == null) {
+            emptyGets.increment();
+         } else {
+            gets.increment();
+         }
+      }
+
+      String generateKeyForReading() {
+         String key = usedKeys.poll();
+         if (key != null) {
+            usedKeys.add(key);
+            return key;
+         }
+         return INVALID_KEY;
+      }
+
+      String generateKeyForDeleting() {
+         String poll = usedKeys.poll();
+         if (poll != null) return poll;
+         return INVALID_KEY;
+      }
+
+      String generateKeyForInserting() {
+         String key = deletedKeys.poll();
+         if (key != null) {
+            return key;
+         }
+         return String.valueOf(counter.incrementAndGet());
+      }
+
+      Operation generateOp() {
+         int i = random.nextInt(100);
+         if (i < writePercent) return Operation.PUT;
+         if (i < readPercent + writePercent) return Operation.GET;
+         return Operation.REMOVE;
       }
    }
 }

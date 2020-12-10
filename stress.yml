@@ -14,7 +14,7 @@
     - vars/default.yml
   tasks:
     - name: Run stress
-      shell: /opt/loader/stress.java -s={{ groups['jdg'][0] }} -c={{ cache_name }} -d={{ duration_min }} -p={{ protocol }} -r={{ write_percent }} -t={{ stress_threads }}
+      shell: /opt/loader/stress.java -s={{ groups['jdg'][0] }} -c={{ cache_name }} -d={{ duration_min }} -p={{ protocol }} -g={{ read_percent }} -r={{ remove_percent }} -w={{ write_percent }} -t={{ stress_threads }}
 
 - name: Fetch JFR
   hosts: jdg

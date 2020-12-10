@@ -129,13 +129,17 @@ After provisioning either a local or an AWS cluster, the playbook ```stress.yml`
 
 #### Configuration
 
-The variables below affect the stress test:
+The variables below affect the stress test (from ```vars/default.yml```)
 
 * ```duration_min```: Duration in minutes to run the test
 
 * ```stress_threads```: Number of threads to do requests in the server
 
-* ```write_percent```: The percentage of requests that are puts, when compared to removes
+* ```write_percent```: The percentage of requests that are puts
+  
+* ```read_percent```: The percentage of requests that are gets
+
+* ```remove_percent```: The percentage of requests that are remove
 
 #### Running
 
@@ -147,13 +151,14 @@ For the AWS cluster:
 
     ansible-playbook -u ec2-user stress.yml
 
-Using custom variables: 
+Override variable in the command line: 
 
-    ansible-playbook -u ec2-user --extra-vars "stress_threads=500 duration_min=60 write_percent=90"  stress.yml stress.yml          
+    ansible-playbook -u ec2-user --extra-vars "stress_threads=500 duration_min=60 read_percent=60 remove_percent=15 write_percent=25"  stress.yml stress.yml          
 
-runs the stress test for 1 hour, with 500 threads, with 90% writes and 10% deletes.
+runs the stress test for 1 hour, with 500 threads, with 60% gets, 15% removes and 25% writes.
 
 #### Results
 
-JFRs for each JDG node and the latency results for the loader will be saved in the ```results``` folder.
+JFRs for each JDG node and the latency results will be automatically download and saved  to the ```results``` folder from the
+dir where this repository was cloned. 
 

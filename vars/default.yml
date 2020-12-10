@@ -45,7 +45,11 @@ duration_min: 1
 
 stress_threads: 10
 
-write_percent: 65
+read_percent: 60
+
+write_percent: 30
+
+remove_percent: 10
 
 ########## AWS specific variables
 
