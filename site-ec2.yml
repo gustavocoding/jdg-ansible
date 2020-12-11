@@ -74,7 +74,7 @@
   gather_facts: True
   hosts: jdg
   roles:
-    - role: agent
+#    - role: agent
     - role: jdg
       vars:
         cloud: true
