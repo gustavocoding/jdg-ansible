@@ -109,7 +109,7 @@ public class stress implements Callable<Void> {
             .param("writePercent", writePercent)
             .param("getPercent", getPercent)
             .param("removePercent", removePercent)
-            .measurementTime(new TimeValue(30, TimeUnit.SECONDS))
+            .measurementTime(new TimeValue(durationMin, TimeUnit.MINUTES))
             .output(String.format("result-%d.txt", System.currentTimeMillis()))
             .build();
       new Runner(opt).run();
