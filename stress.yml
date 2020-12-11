@@ -4,9 +4,13 @@
     - vars/default.yml
   tasks:
     - set_fact:
-        jfrfile: "jdg-{{ inventory_hostname }}-{{ 100 | random }}.jfr"
+        jfrfile: "jdg-{{ inventory_hostname }}-{{ 1000 | random }}.jfr"
+    - name: Copy jfr template
+      copy:
+        src: ./files/jfr/jdg_gc_all_exceptions_all_threads_30s.jfc
+        dest: /opt/jdg/
     - name: Start JFR
-      shell: jcmd $(pgrep -n java) JFR.start name=stress filename={{ jfrfile }}
+      shell: jcmd $(pgrep -n java) JFR.start settings=/opt/jdg/jdg_gc_all_exceptions_all_threads_30s.jfc name=stress filename={{ jfrfile }}
 
 - name: Run stress test
   hosts: loader
