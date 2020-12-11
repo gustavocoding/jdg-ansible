@@ -86,6 +86,7 @@
   block:
     - name: Make sure server is gone
       wait_for:
+        timeout: 60
         path: /proc/{{ pid.stdout }}/status
         state: absent
   rescue:
