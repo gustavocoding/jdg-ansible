@@ -9,17 +9,10 @@
 
 package org.infinispan;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.LongAdder;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.infinispan.client.hotrod.ProtocolVersion;
 import org.infinispan.client.hotrod.RemoteCache;
@@ -34,7 +27,6 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
@@ -128,12 +120,6 @@ public class stress implements Callable<Void> {
       helper = new Helper(writePercent, getPercent, removePercent, cache.size());
    }
 
-   @TearDown
-   public void printExtraInfo() {
-      System.out.printf("Gets=%d, Empty Gets=%d, Puts=%d, Remove existing=%d, Remove unexistent=%d%n%n",
-            helper.gets.longValue(), helper.emptyGets.longValue(), helper.puts.longValue(), helper.removes.longValue(), helper.emptyRemoves.longValue());
-   }
-
    @Benchmark
    @BenchmarkMode({Mode.SampleTime})
    public void loadGenerator(Blackhole blackhole) {
@@ -141,17 +127,14 @@ public class stress implements Callable<Void> {
          case PUT:
             String newId = helper.generateKeyForInserting();
             blackhole.consume(cache.put(newId, org.infinispan.loader.randomPhrase(10)));
-            helper.entryInserted(newId);
             break;
          case REMOVE:
             String keyToRemove = helper.generateKeyForDeleting();
-            String returnValue = cache.remove(keyToRemove);
-            helper.entryDeleted(keyToRemove, returnValue);
+            blackhole.consume(cache.remove(keyToRemove));
             break;
          default:
             String keyToRead = helper.generateKeyForReading();
-            String ret = cache.get(keyToRead);
-            helper.entryRead(keyToRead, ret);
+            blackhole.consume(cache.get(keyToRead));
             break;
       }
    }
@@ -162,75 +145,33 @@ public class stress implements Callable<Void> {
       private final Random random = new Random(0);
       private final int writePercent;
       private final int readPercent;
-      private final LongAdder puts = new LongAdder();
-      private final LongAdder gets = new LongAdder();
-      private final LongAdder emptyGets = new LongAdder();
-      private final LongAdder removes = new LongAdder();
-      private final LongAdder emptyRemoves = new LongAdder();
-      private final Queue<String> usedKeys = new ConcurrentLinkedQueue<>();
-      private final Queue<String> deletedKeys = new ConcurrentLinkedQueue<>();
-      private final AtomicInteger counter;
-      private static final String INVALID_KEY = "-1";
+      private final int maxGetIndex;
+      private final AtomicInteger getCounter = new AtomicInteger(0);
+      private final AtomicInteger minDeleteIndex;
+      private final AtomicInteger minPutIndex;
 
       public Helper(String writePct, String getPct, String removePct, int size) {
-         int wp = Integer.parseInt(writePct);
-         int gp = Integer.parseInt(getPct);
-         int rp = Integer.parseInt(removePct);
+         this.writePercent = Integer.parseInt(writePct);
+         this.readPercent = Integer.parseInt(getPct);
+         int removePercent = Integer.parseInt(removePct);
 
-         if (wp + gp + rp != 100) throw new RuntimeException("Invalid Percentages");
+         if (writePercent + readPercent + removePercent != 100) throw new RuntimeException("Invalid Percentages");
 
-         this.writePercent = wp;
-         this.readPercent = gp;
-         List<String> ids = IntStream.range(1, size).boxed().map(String::valueOf).collect(Collectors.toList());
-         Collections.shuffle(ids, random);
-         usedKeys.addAll(ids);
-         counter = new AtomicInteger(ids.size());
-      }
-
-      void entryInserted(String key) {
-         puts.increment();
-         usedKeys.add(key);
-      }
-
-      void entryDeleted(String key, Object returnValue) {
-         deletedKeys.add(key);
-         usedKeys.remove(key);
-         if (returnValue == null) {
-            emptyRemoves.increment();
-         } else {
-            removes.increment();
-         }
-      }
-
-      public void entryRead(String keyToRead, Object returnValue) {
-         if (returnValue == null) {
-            emptyGets.increment();
-         } else {
-            gets.increment();
-         }
+         this.maxGetIndex = size / 2;
+         this.minDeleteIndex = new AtomicInteger(maxGetIndex + 1);
+         this.minPutIndex = new AtomicInteger(size);
       }
 
       String generateKeyForReading() {
-         String key = usedKeys.poll();
-         if (key != null) {
-            usedKeys.add(key);
-            return key;
-         }
-         return INVALID_KEY;
+         return String.valueOf(getCounter.incrementAndGet() % maxGetIndex);
       }
 
       String generateKeyForDeleting() {
-         String poll = usedKeys.poll();
-         if (poll != null) return poll;
-         return INVALID_KEY;
+         return String.valueOf(minDeleteIndex.incrementAndGet());
       }
 
       String generateKeyForInserting() {
-         String key = deletedKeys.poll();
-         if (key != null) {
-            return key;
-         }
-         return String.valueOf(counter.incrementAndGet());
+         return String.valueOf(minPutIndex.incrementAndGet());
       }
 
       Operation generateOp() {
